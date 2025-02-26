@@ -6,7 +6,9 @@ dataset = pd.read_csv('dataset.csv')
 from huggingface_hub import login
 
 # Log in to Hugging Face
-login(token="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")
+import os
+token = os.getenv('HUGGINGFACE_TOKEN')
+login(token=token)
 
 # Load the Llama model and tokenizer from Hugging Face
 model_name = "meta-llama/Llama-3.2-3B-Instruct"
