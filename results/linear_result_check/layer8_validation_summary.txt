@@ -1,0 +1,46 @@
+=== layer8_validation_summary ===
+
+class_imbalance:
+{'average_imbalance': 0.02448293091436252, 'high_imbalance': False}
+duplicates:
+{ 'duplicate_sentence_percentage': 0.0,
+  'duplicate_triplet_percentage': 0.0,
+  'high_duplicates': False}
+obj1:
+{ 'accuracy_10pct_dims': 0.5243138634764251,
+  'accuracy_1pct_dims': 0.10921885995777621,
+  'cv_mean': 0.9777338301810603,
+  'cv_problem': False,
+  'cv_std': 0.0012798792429194357,
+  'cv_variation': 0.0013090262435559,
+  'dimension_problem': False,
+  'shuffle_difference': 0.9792751583391978,
+  'shuffle_problem': False,
+  'shuffled_accuracy': 0.02040816326530612}
+relation:
+{ 'accuracy_10pct_dims': 0.9312456016889514,
+  'accuracy_1pct_dims': 0.12294159042927516,
+  'cv_mean': 0.9989795829221805,
+  'cv_problem': False,
+  'cv_std': 0.00014250982686019663,
+  'cv_variation': 0.00014265539486135625,
+  'dimension_problem': False,
+  'shuffle_difference': 0.9668543279380718,
+  'shuffle_problem': False,
+  'shuffled_accuracy': 0.03314567206192822}
+obj2:
+{ 'accuracy_10pct_dims': 0.6530612244897959,
+  'accuracy_1pct_dims': 0.09883884588318086,
+  'cv_mean': 0.9510974784465269,
+  'cv_problem': False,
+  'cv_std': 0.0007372687909143153,
+  'cv_variation': 0.0007751768957673315,
+  'dimension_problem': False,
+  'shuffle_difference': 0.9791695988740323,
+  'shuffle_problem': False,
+  'shuffled_accuracy': 0.018789584799437015}
+potential_issues:
+
+reliability_score:
+  10
+

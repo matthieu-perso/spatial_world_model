@@ -1,0 +1,46 @@
+=== layer16_validation_summary ===
+
+class_imbalance:
+{'average_imbalance': 0.02448293091436252, 'high_imbalance': False}
+duplicates:
+{ 'duplicate_sentence_percentage': 0.0,
+  'duplicate_triplet_percentage': 0.0,
+  'high_duplicates': False}
+obj1:
+{ 'accuracy_10pct_dims': 0.5688951442646024,
+  'accuracy_1pct_dims': 0.10337790288529204,
+  'cv_mean': 0.9823714477327676,
+  'cv_problem': False,
+  'cv_std': 0.00046191020123387624,
+  'cv_variation': 0.0004701991311941394,
+  'dimension_problem': False,
+  'shuffle_difference': 0.9780788177339901,
+  'shuffle_problem': False,
+  'shuffled_accuracy': 0.02054890921885996}
+relation:
+{ 'accuracy_10pct_dims': 0.9104855735397608,
+  'accuracy_1pct_dims': 0.24176636171710064,
+  'cv_mean': 0.997192098664107,
+  'cv_problem': False,
+  'cv_std': 0.00025314498815535557,
+  'cv_variation': 0.00025385779579930733,
+  'dimension_problem': False,
+  'shuffle_difference': 0.9742434904996481,
+  'shuffle_problem': False,
+  'shuffled_accuracy': 0.02554539057002111}
+obj2:
+{ 'accuracy_10pct_dims': 0.5544334975369458,
+  'accuracy_1pct_dims': 0.1037649542575651,
+  'cv_mean': 0.9365653572152259,
+  'cv_problem': False,
+  'cv_std': 0.0008195232514293243,
+  'cv_variation': 0.000875030498529314,
+  'dimension_problem': False,
+  'shuffle_difference': 0.9738564391273751,
+  'shuffle_problem': False,
+  'shuffled_accuracy': 0.017311752287121746}
+potential_issues:
+
+reliability_score:
+  10
+
