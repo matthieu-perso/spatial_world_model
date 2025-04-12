@@ -156,3 +156,4 @@ cython_debug/
 .pyright/
 
 # End Generation Here
+.DS_Store

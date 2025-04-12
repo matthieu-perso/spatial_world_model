@@ -1,17 +1,18 @@
-import os
+# ==================
+# function: set seed
+# ==================
 
-def upload_to_huggingface(csv_file_path):
-    from huggingface_hub import HfApi, HfFolder
+import torch
+import numpy as np
+import random
 
-    hf_api = HfApi()
-    token = HfFolder.get_token()
-    repo_id = "matthieunlp/spatial_geometry"
+def set_seed(seed: int = 42):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  # for multi-GPU setups
+    np.random.seed(seed)
+    random.seed(seed)
 
-    hf_api.upload_file(
-        path_or_fileobj=csv_file_path,
-        path_in_repo=csv_file_path,
-        repo_id=repo_id,
-        repo_type="dataset",
-        token=token
-    )
-    print(f"Sentences uploaded to Hugging Face dataset: {repo_id}")
+    # ensures deterministic operations on GPU
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False  # Disable benchmark mode

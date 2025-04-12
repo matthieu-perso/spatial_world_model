@@ -1,1 +1,41 @@
-# Spatial World Models LLMs
+# Spatial World Models in LLMs
+
+This project investigates how large language models represent and reason about spatial relationships between objects, with a particular focus on transitivity in spatial relations.
+
+## Data & Experiments
+
+The experiments are conducted in the following notebooks:
+
+1. **`1_data_generation.ipynb`**: Creates training data with spatial relationships between objects
+2. **`2_embedding_extraction.ipynb`**: Extracts embeddings from the language model for both direct and chained relationships
+3. **`3_linear_probing.ipynb`**: Trains linear probes to identify spatial relationships
+4. **`4_transitivity_analysis.ipynb`**: Analyzes whether the model maintains transitivity in spatial reasoning
+
+The project uses a set of common objects and their spatial relationships:
+- Direct relationships (e.g., "A is above B")
+- Chained relationships (e.g., "A is above B and B is to the right of C")
+- Composed relationships (e.g., "A is diagonally above and to the right of C")
+
+## Requirements
+
+- GPU for efficient implementation (uses Llama-3.2-3B-Instruct model)
+- Python packages: `transformers`, `torch`, `numpy`, `scikit-learn`, `pandas`, `matplotlib`, `einops`
+
+## Results
+
+The project investigates:
+- How well language models represent spatial relationships
+- Whether models maintain transitivity in spatial reasoning
+- The effectiveness of linear probes in extracting spatial relationship information
+- Comparison between direct and chained spatial relationship representations
+
+## How to Cite
+
+<!-- ```bibtex
+@article{spatialworldmodel2024,
+  title={Spatial World Models in LLMs: Investigating Transitivity in Spatial Reasoning},
+  author={[]},
+  journal={[Journal Name]},
+  year={2024}
+}
+``` -->
