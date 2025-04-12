@@ -3,6 +3,9 @@
 
 test.ipynb
 
+.DS_Store
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -157,3 +160,5 @@ cython_debug/
 
 # End Generation Here
 .DS_Store
+.DS_Store
+**/.DS_Store
