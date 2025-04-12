@@ -1,15 +1,8 @@
 # Spatial World Models in LLMs
 
-This project investigates how large language models represent and reason about spatial relationships between objects, with a particular focus on transitivity in spatial relations.
+In this project, we investigate how large language models represent and reason about spatial relationships between objects, with a particular focus on transitivity in spatial relations. We test whether these models maintain consistent spatial relationships through direct and chained spatial relationships.
 
-## Data & Experiments
-
-The experiments are conducted in the following notebooks:
-
-1. **`1_data_generation.ipynb`**: Creates training data with spatial relationships between objects
-2. **`2_embedding_extraction.ipynb`**: Extracts embeddings from the language model for both direct and chained relationships
-3. **`3_linear_probing.ipynb`**: Trains linear probes to identify spatial relationships
-4. **`4_transitivity_analysis.ipynb`**: Analyzes whether the model maintains transitivity in spatial reasoning
+## Data
 
 The project uses a set of common objects and their spatial relationships:
 - Direct relationships (e.g., "A is above B")
