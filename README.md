@@ -16,10 +16,21 @@ The project uses a set of common objects and their spatial relationships:
 - Chained relationships (e.g., "A is above B and B is to the right of C")
 - Composed relationships (e.g., "A is diagonally above and to the right of C")
 
-## Requirements
+The spatial relationships are defined in the notebooks and include:
+- Basic relationships: "above", "below", "to the right of", "to the left of"
+- Composed relationships: "diagonally above and to the right of", "diagonally above and to the left of", etc.
 
-- GPU for efficient implementation (uses Llama-3.2-3B-Instruct model)
-- Python packages: `transformers`, `torch`, `numpy`, `scikit-learn`, `pandas`, `matplotlib`, `einops`
+
+
+Also, you need GPUs to implement the code efficiently, as it uses the Llama-3.2-3B-Instruct model.
+
+## Experiments
+
+The experiments are conducted in the following notebooks:
+
+1. **`1_inverse.ipynb`**: Creates training data with spatial relationships between objects
+2. **`2_compositionality.ipynb`**: Compositionality of spatial relationships
+3. **`3_transitivity.ipynb`**: Transitivity of spatial relationships
 
 ## Results
 
