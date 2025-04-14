@@ -240,3 +240,44 @@ def check_transitivity_relations_grid(grid_vectors, composition_relations=None, 
     # Create DataFrame
     df = pd.DataFrame(results)
     return df
+
+
+def compute_relation_vectors_from_grid(grid_vectors, spatial_map, center=None):
+    """Extract relation vectors from grid representation.
+    
+    Args:
+        grid_vectors: 5D tensor [classes, z, y, x, features]
+        spatial_map: Dictionary mapping relation names to (dx, dy, dz) offsets
+        center: Optional center coordinates (default is middle of grid)
+        
+    Returns:
+        Dictionary mapping relation names to their vector representations
+    """
+    if center is None:
+        # Use the center of the grid
+        center = (grid_vectors.shape[3]//2, grid_vectors.shape[2]//2, grid_vectors.shape[1]//2)
+
+    # Extract the center vector (reference point)
+    center_x, center_y, center_z = center
+    center_vector = grid_vectors[0, center_z, center_y, center_x, :]  # Using class 0 (background)
+
+    # Compute relation vectors for each spatial relation
+    relation_vectors = {}
+    for relation, (dx, dy, dz) in spatial_map.items():
+        # Calculate target position
+        target_x = center_x + dx
+        target_y = center_y + dy
+        target_z = center_z + dz
+
+        # Check if position is within grid bounds
+        if (0 <= target_x < grid_vectors.shape[3] and
+            0 <= target_y < grid_vectors.shape[2] and
+            0 <= target_z < grid_vectors.shape[1]):
+
+            # Extract vector for target position
+            target_vector = grid_vectors[0, target_z, target_y, target_x, :]
+
+            # Compute relation vector (target - center)
+            relation_vectors[relation] = target_vector - center_vector
+
+    return relation_vectors

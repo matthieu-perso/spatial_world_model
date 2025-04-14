@@ -166,7 +166,7 @@ def extract_embeddings(
     # extract embeddings
     print("extracting embeddings from dataset of sentences...\n" if verbose else "")
     for idx, sentence_text in enumerate(tqdm(train_sentences, desc="Rows")):
-        print(f"\nsentence : {sentence_text}\n" if verbose else "")
+        # print(f"\nsentence : {sentence_text}\n" if verbose else "")
 
         # tokenize
         inputs = tokenizer(sentence_text, return_tensors="pt", truncation=True)
@@ -414,7 +414,7 @@ def extract_embeddings(
     # extract embeddings
     print("extracting embeddings from dataset of sentences...\n" if verbose else "")
     for idx, sentence_text in enumerate(tqdm(train_sentences, desc="Rows")):
-        print(f"\nsentence : {sentence_text}\n" if verbose else "")
+        # print(f"\nsentence : {sentence_text}\n" if verbose else "")
 
         # tokenize
         inputs = tokenizer(sentence_text, return_tensors="pt", truncation=True)

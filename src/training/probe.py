@@ -6,6 +6,8 @@ import random
 import re
 import time
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 from dataclasses import dataclass
 from itertools import permutations
@@ -120,6 +122,26 @@ class LinearProbeTrainer:
         if self.args.use_wandb:
             wandb.finish()
 
+# =================================
+# function: extract representations
+# =================================
+def get_directions(linear_probe: torch.Tensor, options: int, mappings: Dict[str, int], verbose: bool=True) -> Dict[str, torch.Tensor]:
+    """
+    extract directions (unormalized) from linear probe
+    """
+    directions = linear_probe.detach().cpu().numpy()
+    mapping = mappings["relation"]
+
+    # create a mapping from class names to their weight vectors
+    directions_dict = {}
+    for relation, relation_index in mapping.items():
+        if relation_index < options:
+            directions_dict[relation] = directions[:, int(relation_index)]
+
+    print(f"shape of direction vector (d_model,) = {directions_dict['above'].shape}" if verbose else "")
+
+    return directions_dict
+
 
 # ========================
 # function: evaluate probe
@@ -185,10 +207,15 @@ class GridLinearProbe(nn.Module):
         return out
     
     def extract_spatial_vectors(self):
-        """Extract spatial vectors from the model weights."""
-        return self.linear.weight.data.view(
-            self.num_classes, self.grid_size[2], self.grid_size[1], self.grid_size[0], -1
+        """Extract spatial vectors from the linear layer weights"""
+        grid_vectors = self.linear.weight.data.view(
+            self.num_classes, 
+            self.grid_size[2], 
+            self.grid_size[1], 
+            self.grid_size[0], 
+            -1
         )
+        return grid_vectors
 
 # Add training function for grid probe
 def train_grid_probe(grid_probe, dataloader, device, epochs=30, lr=1e-3):

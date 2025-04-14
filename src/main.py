@@ -1,16 +1,17 @@
 import torch
 import random
+import numpy as np
 
-from data.data import generate_single_sentence_dataset, extract_embeddings, parse_sentences, encode_triplets, prepare_data_split, create_data_loaders
+from data.data import generate_single_sentence_dataset, extract_embeddings, parse_sentences, encode_triplets, prepare_data_split, create_data_loaders, generate_3d_grid_data, parse_sentence_to_grid
 from analysis.inverse import check_inverse_relations
-from analysis.compositionality import check_compositional_relations
-from analysis.transitivity import check_transitivity_relations
+from analysis.compositionality import check_compositional_relations, check_compositional_relations_grid, compute_relation_vectors_from_grid
+from analysis.transitivity import check_transitivity_relations, check_transitivity_relations_grid
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from utils import set_seed
-from training.probe import ProbeTrainingArgs, LinearProbeTrainer, evaluate_probe, get_directions
+from utils import set_seed, visualize_3d_grid
+from training.probe import ProbeTrainingArgs, LinearProbeTrainer, evaluate_probe, get_directions, GridLinearProbe, train_grid_probe, evaluate_grid_probe
 from torch import Tensor
 
-VERBOSE = True
+VERBOSE = False
 from dotenv import load_dotenv
 import os
 
