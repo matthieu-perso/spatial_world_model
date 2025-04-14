@@ -178,3 +178,112 @@ def check_compositional_relations(directions: Dict[str, np.ndarray]) -> pd.DataF
     df = pd.DataFrame(results)
     return df
 
+# =======================================
+# Grid-based Compositionality
+# =======================================
+# Add Grid-based Compositionality Analysis functions
+def check_compositional_relations_grid(grid_vectors, composition_relations=None, spatial_map=None, center=None):
+    """Check compositional relationships using grid vectors.
+    
+    Args:
+        grid_vectors: 5D tensor of shape [classes, z, y, x, features]
+        composition_relations: Dictionary mapping complex relations to component relation pairs
+        spatial_map: Dictionary mapping relation names to (dx, dy, dz) offsets
+        center: Optional tuple specifying the grid center coordinates
+    
+    Returns:
+        pd.DataFrame: Compositional analysis results
+    """
+    # Extract relation vectors from grid
+    relation_vectors = compute_relation_vectors_from_grid(grid_vectors, spatial_map, center)
+    
+    # Default composition relations if not provided
+    if composition_relations is None:
+        composition_relations = {
+            "diagonally_front_left": ("left", "in_front"),
+            "diagonally_front_right": ("right", "in_front"),
+            "diagonally_back_left": ("left", "behind"),
+            "diagonally_back_right": ("right", "behind"),
+            "above_and_left": ("above", "left"),
+            "above_and_right": ("above", "right"),
+            "below_and_left": ("below", "left"),
+            "below_and_right": ("below", "right"),
+            "above_and_in_front": ("above", "in_front"),
+            "above_and_behind": ("above", "behind"),
+            "below_and_in_front": ("below", "in_front"),
+            "below_and_behind": ("below", "behind"),
+        }
+    
+    # Analyze compositions
+    results = []
+    
+    for complex_rel, (rel1, rel2) in composition_relations.items():
+        if complex_rel in relation_vectors and rel1 in relation_vectors and rel2 in relation_vectors:
+            complex_vec = relation_vectors[complex_rel]
+            component_sum = relation_vectors[rel1] + relation_vectors[rel2]
+            
+            # Calculate metrics similar to original function
+            # Cosine similarity
+            norm_complex = complex_vec / torch.norm(complex_vec)
+            norm_sum = component_sum / torch.norm(component_sum)
+            cosine_sim = torch.dot(norm_complex, norm_sum).item()
+            
+            # Euclidean distance
+            euclidean_diff = torch.norm(complex_vec - component_sum).item()
+            
+            # Angle
+            angle_rad = torch.acos(torch.clamp(torch.tensor(cosine_sim), -1.0, 1.0))
+            angle_deg = angle_rad.item() * 180 / np.pi
+            
+            results.append({
+                "Direct Relation": complex_rel,
+                "Atomic Relation 1": rel1,
+                "Atomic Relation 2": rel2,
+                "Cosine Similarity (Original)": cosine_sim,
+                "Euclidean Diff (Original)": euclidean_diff,
+                "Angle (Original, °)": angle_deg
+            })
+    
+    # Create DataFrame
+    df_metrics = pd.DataFrame(results)
+    return df_metrics
+
+def compute_relation_vectors_from_grid(grid_vectors, spatial_map, center=None):
+    """Extract relation vectors from grid representation.
+    
+    Args:
+        grid_vectors: 5D tensor [classes, z, y, x, features]
+        spatial_map: Dictionary mapping relation names to (dx, dy, dz) offsets
+        center: Optional center coordinates (default is middle of grid)
+        
+    Returns:
+        Dictionary mapping relation names to their vector representations
+    """
+    if center is None:
+        # Use the center of the grid
+        center = (grid_vectors.shape[3]//2, grid_vectors.shape[2]//2, grid_vectors.shape[1]//2)
+
+    # Extract the center vector (reference point)
+    center_x, center_y, center_z = center
+    center_vector = grid_vectors[0, center_z, center_y, center_x, :]  # Using class 0 (background)
+
+    # Compute relation vectors for each spatial relation
+    relation_vectors = {}
+    for relation, (dx, dy, dz) in spatial_map.items():
+        # Calculate target position
+        target_x = center_x + dx
+        target_y = center_y + dy
+        target_z = center_z + dz
+
+        # Check if position is within grid bounds
+        if (0 <= target_x < grid_vectors.shape[3] and
+            0 <= target_y < grid_vectors.shape[2] and
+            0 <= target_z < grid_vectors.shape[1]):
+
+            # Extract vector for target position
+            target_vector = grid_vectors[0, target_z, target_y, target_x, :]
+
+            # Compute relation vector (target - center)
+            relation_vectors[relation] = target_vector - center_vector
+
+    return relation_vectors

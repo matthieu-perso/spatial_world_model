@@ -196,3 +196,110 @@ transitivity_df = check_transitivity_relations(
     diagonal_directions,
     verbose=VERBOSE
 ) 
+
+# ========================
+# Grid Model
+# ========================
+"""## Analyze Spatial Relations with Grid-based Approach"""
+
+# Define 3D grid parameters
+grid_size = (9, 9, 9)
+objects = {
+    "chair": 1, "table": 2, "car": 3, "lamp": 4, "box": 5,
+    "book": 6, "vase": 7, "plant": 8, "computer": 9, "phone": 10
+}
+
+# Define spatial map for grid-based approach
+spatial_map = {
+    # horizontal (x)
+    "left": (-2, 0, 0),
+    "right": (2, 0, 0),
+    # depth (y)
+    "in_front": (0, 2, 0),
+    "front": (0, 2, 0),
+    "behind": (0, -2, 0),
+    "back": (0, -2, 0),
+    # vertical (z)
+    "above": (0, 0, 2),
+    "below": (0, 0, -2),
+    # diagonal
+    "diagonally_front_left": (-2, 2, 0),
+    "diagonally_front_right": (2, 2, 0),
+    "diagonally_back_left": (-2, -2, 0),
+    "diagonally_back_right": (2, -2, 0),
+    # 3D combinations
+    "above_and_left": (-2, 0, 2),
+    "above_and_right": (2, 0, 2),
+    "below_and_left": (-2, 0, -2),
+    "below_and_right": (2, 0, -2),
+    "above_and_in_front": (0, 2, 2),
+    "above_and_behind": (0, -2, 2),
+    "below_and_in_front": (0, 2, -2),
+    "below_and_behind": (0, -2, -2),
+}
+
+# Generate 3D grid representations from sentences
+print("\n" + "=" * 40)
+print("📊 3D Grid Analysis")
+print("=" * 40)
+
+# Parse sentences to 3D grids
+grid_labels = generate_3d_grid_data(sentences, objects, spatial_map, grid_size)
+grid_labels_tensor = torch.tensor(np.array(grid_labels), dtype=torch.long)
+
+# Create grid probe
+grid_probe = GridLinearProbe(d_model, grid_size, len(objects) + 1)
+    
+# Create dataset and dataloader for grid probe
+grid_dataset = torch.utils.data.TensorDataset(layer_tensor, grid_labels_tensor)
+grid_dataloader = torch.utils.data.DataLoader(grid_dataset, batch_size=64, shuffle=True)
+
+# Train the grid probe
+print("\nTraining grid-based linear probe...")
+grid_probe = train_grid_probe(grid_probe, grid_dataloader, device, epochs=50)
+
+# Evaluate grid probe
+grid_accuracy, grid_loss = evaluate_grid_probe(grid_probe, grid_dataloader, device)
+print(f"Grid probe accuracy: {grid_accuracy:.4f}, loss: {grid_loss:.4f}")
+
+# Extract spatial vectors from grid probe
+grid_vectors = grid_probe.extract_spatial_vectors()
+
+# Analyze compositional relations with grid approach
+print("\n" + "=" * 40)
+print("🧩 Analyzing Compositional Relations (Grid-based)")
+print("=" * 40)
+grid_composition_df = check_compositional_relations_grid(grid_vectors, spatial_map=spatial_map)
+
+# Analyze transitivity with grid approach
+print("\n" + "=" * 40)
+print("🔄 Analyzing Transitivity Relations (Grid-based)")
+print("=" * 40)
+composition_relations = {
+    "diagonally_front_right": ("right", "in_front"),
+    "diagonally_front_left": ("left", "in_front"),
+    "diagonally_back_right": ("right", "behind"),
+    "diagonally_back_left": ("left", "behind"),
+    "above_and_right": ("above", "right"),
+    "above_and_left": ("above", "left"),
+    "below_and_right": ("below", "right"),
+    "below_and_left": ("below", "left"),
+    "above_and_in_front": ("above", "in_front"),
+    "above_and_behind": ("above", "behind"),
+    "below_and_in_front": ("below", "in_front"),
+    "below_and_behind": ("below", "behind"),
+}
+grid_transitivity_df = check_transitivity_relations_grid(grid_vectors, composition_relations, spatial_map)
+
+# Compare approaches
+print("\n" + "=" * 40)
+print("🔍 Comparing Approaches")
+print("=" * 40)
+
+print("\nCompositional Analysis:")
+print(f"Original approach average similarity: {composition_df['Cosine Similarity (Original)'].mean():.4f}")
+print(f"Grid approach average similarity: {grid_composition_df['Cosine Similarity (Original)'].mean():.4f}")
+
+print("\nTransitivity Analysis:")
+print(f"Original approach average similarity: {transitivity_df['Cosine Similarity (Original)'].mean():.4f}")
+print(f"Grid approach average similarity: {grid_transitivity_df['Cosine Similarity (Original)'].mean():.4f}")
