@@ -24,7 +24,7 @@ from typing import Dict, List, Tuple
 # =========================================================================
 # function: check inverse relation between linear probe's binary directions
 # =========================================================================
-def check_inverse_relations(directions: Dict[str, np.ndarray]) -> pd.DataFrame:
+def check_inverse_relations(directions: Dict[str, np.ndarray], verbose: bool = True) -> pd.DataFrame:
     """
     Check inverse relations between binary spatial relations.
 

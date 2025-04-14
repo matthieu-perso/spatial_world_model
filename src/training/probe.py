@@ -21,6 +21,7 @@ from tqdm import tqdm
 from typing import Dict, List, Tuple
 
 
+
 # ============================
 # class: probe train arguments
 # ============================
@@ -49,7 +50,7 @@ class ProbeTrainingArgs:
 
     # cpde to get randomly initialized probe
     def setup_probe(self) -> torch.Tensor:
-        linear_probe = torch.randn(self.d_model, self.options, device=self.device) / np.sqrt(self.d_model)
+        linear_probe = torch.randn(self.d_model, self.options, device=self.device, dtype=torch.float32) / np.sqrt(self.d_model)
         linear_probe.requires_grad = True
         print(f"shape of linear probe is: d_model = {linear_probe.shape[0]} and options = {linear_probe.shape[-1]}" if self.verbose else "")
         return linear_probe
@@ -151,8 +152,4 @@ def evaluate_probe(linear_probe: torch.Tensor, dataloader: DataLoader, device=to
     report = classification_report(all_targets, all_preds, output_dict=True, zero_division=1)
 
     return accuracy, report
-
-
-
-
 
