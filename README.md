@@ -1,56 +1,58 @@
-# Spatial World Models in LLMs
+# Linear Spatial World Models in Large Language Models
 
-In this project, we investigate how large language models represent and reason about spatial relationships between objects, with a particular focus on transitivity in spatial relations. We test whether these models maintain consistent spatial relationships through direct and chained spatial relationships.
-
-## Approaches
-
-The project uses two complementary approaches to analyze spatial reasoning in LLMs:
-
-1. **Vector-based approach**: Uses linear probes to extract spatial relationship vectors from model embeddings.
-2. **Grid-based approach**: Maps object relationships onto a 3D grid representation to analyze spatial understanding.
+This repository investigates how large language models (LLMs) represent and reason about spatial relationships between objects. We focus on whether LLMs encode linear spatial world models and maintain transitivity and compositionality in spatial reasoning.
 
 
-## Data
-
-The project uses a set of common objects and their spatial relationships:
-- Direct relationships (e.g., "A is above B")
-- Chained relationships (e.g., "A is above B and B is to the right of C")
-- Composed relationships (e.g., "A is diagonally above and to the right of C")
-
-The spatial relationships are defined in the notebooks and include:
-- Basic relationships: "above", "below", "to the right of", "to the left of"
-- Composed relationships: "diagonally above and to the right of", "diagonally above and to the left of", etc.
+---
 
 ## Experiments
 
-The experiments are conducted in the following notebooks:
+- **Inverse Analysis:** Are "above" and "below" (or "left" and "right") represented as geometric inverses?
+- **Compositionality:** Are diagonal or compound relations (e.g., "diagonally above and to the right") vector sums of basic relations?
+- **Steering:** Steering the model based on the subspace
 
-1. **`1_inverse.ipynb`**: Creates training data with spatial relationships between objects
-2. **`2_compositionality.ipynb`**: Compositionality of spatial relationships
-3. **`3_transitivity.ipynb`**: Transitivity of spatial relationships
-4. **`4_grid_object_transitivity.ipynb`**: Transitivity with explicit object positioning in 3D grids
+All experiments can be run via scripts in `src/` or interactively in the provided notebooks.
+
+---
+
+## Code Structure 
+
+- `src/`: Source code for the experiments.
+- `notebooks/`: Jupyter notebooks for the experiments.
+- `data/`: Data for the experiments.
+
+Main analysis can be found in the notebooks:
+- `notebooks/1_inverse.ipynb`: Inverse analysis
+- `notebooks/2_compositionality.ipynb`: Compositionality analysis
+- `notebooks/3_steering.ipynb`: Steering analysis
+
+
+
+---
 
 ## Results
 
-The project investigates:
-- How well language models represent spatial relationships
-- Whether models maintain transitivity in spatial reasoning
-- The effectiveness of linear probes in extracting spatial relationship information
-- Comparison between direct and chained spatial relationship representations
-- The consistency of object positioning when applying chained spatial relationships
+- LLMs encode spatial relationships as linear structures in their embeddings.
+- Linear probes and grid probes can extract and visualize these relationships.
+- The models maintain transitivity and compositionality in spatial reasoning.
 
-## Requirements
+---
 
-Also, you need GPUs to implement the code efficiently, as it uses the Llama-3.2-3B-Instruct model.
+## Citation
 
+If you use this work, please cite:
 
-## How to Cite
-
-<!-- ```bibtex
-@article{spatialworldmodel2024,
-  title={Spatial World Models in LLMs: Investigating Transitivity in Spatial Reasoning},
-  author={[]},
-  journal={[Journal Name]},
-  year={2024}
+```bibtex
+@article{tehenan2025linear,
+  title={Linear Spatial World Models Emerge in Large Language Models},
+  author={Tehenan, Matthieu and Moya, Christian Bolivar and Long, Tenghai and Lin, Guang},
+  journal={arXiv preprint arXiv:2506.02996},
+  year={2025}
 }
-``` -->
+```
+
+---
+
+## License
+
+MIT License
