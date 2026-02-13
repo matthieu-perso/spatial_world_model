@@ -1,7 +1,14 @@
 from PIL import Image
 import torch
 import transformers
-from transformers import AutoTokenizer, AutoModelForCausalLM, LlamaTokenizer, InstructBlipProcessor, InstructBlipForConditionalGeneration
+from transformers import (
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    AutoProcessor,
+    LlamaTokenizer,
+    InstructBlipProcessor,
+    InstructBlipForConditionalGeneration,
+)
 import json
 import os
 import warnings
@@ -101,6 +108,80 @@ def load_instructblip_model_processor(args):
     return model, processor
 
 
+def _is_llama32_vision(model_path: str) -> bool:
+    """True if model is Llama 3.2 Vision (HuggingFace native)."""
+    p = model_path.lower()
+    return ("llama-3.2" in p or "llama_3.2" in p) and "vision" in p
+
+
+def _is_qwen25_vl(model_path: str) -> bool:
+    """True if model is Qwen2.5-VL (HuggingFace native, not legacy Qwen-VL-Chat)."""
+    p = model_path.lower()
+    return "qwen2.5-vl" in p or "qwen2_5_vl" in p
+
+
+def load_llama32_vision_model_processor(args):
+    """Load Llama 3.2 Vision Instruct via MllamaForConditionalGeneration (HF native)."""
+    from transformers import MllamaForConditionalGeneration
+
+    model = MllamaForConditionalGeneration.from_pretrained(
+        args.model_path,
+        torch_dtype=torch.bfloat16,
+        device_map=args.device if args.device != "cpu" else None,
+        low_cpu_mem_usage=True,
+    )
+    if args.device == "cpu":
+        model = model.to("cpu")
+    model.eval()
+    processor = AutoProcessor.from_pretrained(args.model_path)
+    return model, processor
+
+
+def load_qwen25_vl_model_processor(args):
+    """Load Qwen2.5-VL Instruct via Qwen2_5_VLForConditionalGeneration (HF native)."""
+    from transformers import Qwen2_5_VLForConditionalGeneration
+
+    model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+        args.model_path,
+        torch_dtype=torch.bfloat16,
+        device_map=args.device if args.device != "cpu" else None,
+        low_cpu_mem_usage=True,
+    )
+    if args.device == "cpu":
+        model = model.to("cpu")
+    model.eval()
+    processor = AutoProcessor.from_pretrained(args.model_path)
+    return model, processor
+
+
+def _build_hf_vlm_messages(prompt: str, image=None):
+    """Build chat messages for Llama 3.2 Vision / Qwen2.5-VL (HF native)."""
+    if image is None:
+        content = [{"type": "text", "text": prompt}]
+    else:
+        content = [{"type": "image", "image": image}, {"type": "text", "text": prompt}]
+    return [{"role": "user", "content": content}]
+
+
+def _prepare_hf_vlm_inputs(processor, messages, model_device):
+    """Apply chat template and move inputs to model device."""
+    inputs = processor.apply_chat_template(
+        messages,
+        add_generation_prompt=True,
+        tokenize=True,
+        return_dict=True,
+        return_tensors="pt",
+    )
+    # BatchFeature / dict: move all tensor inputs to model device
+    inp = {}
+    for k, v in inputs.items():
+        if hasattr(v, "to"):
+            inp[k] = v.to(model_device)
+        else:
+            inp[k] = v
+    return inp
+
+
 @torch.inference_mode()
 def main(args, model, processor, dataset, output_file_path):
     question_groups = {}
@@ -144,7 +225,7 @@ def main(args, model, processor, dataset, output_file_path):
                         prompt = format_bunny_tqa_prompt_hf(item['text'], args)
                     else:
                         prompt = format_bunny_vqa_prompt_hf(item['text'], args)
-                elif "qwen" or "cog" or "instructblip" or "llava" in args.model_path.lower() or "merged" in args.model_path.lower():
+                elif any(x in args.model_path.lower() for x in ("qwen", "cog", "instructblip", "llava")) or "merged" in args.model_path.lower() or _is_llama32_vision(args.model_path) or _is_qwen25_vl(args.model_path):
                     if args.w_reason:
                         prompt = f"{item['text']}\nFirst, provide a concise answer in one sentence. Then, elaborate on the reasoning behind your answer in a detailed, step-by-step explanation."
                     elif args.completion:
@@ -154,7 +235,53 @@ def main(args, model, processor, dataset, output_file_path):
                 else:
                     raise ValueError(f"The maze dataset does not support the model {args.model_path}.")
 
-                if "bunny" in args.model_path.lower() and "merged" not in args.model_path.lower():
+                if _is_llama32_vision(args.model_path) or _is_qwen25_vl(args.model_path):
+                    # Llama 3.2 Vision / Qwen2.5-VL (HuggingFace native): forward for cache, then generate
+                    messages = _build_hf_vlm_messages(prompt, image)
+                    model_device = next(model.parameters()).device
+                    inputs = _prepare_hf_vlm_inputs(processor, messages, model_device)
+                    input_length = inputs["input_ids"].shape[1]
+
+                    if getattr(args, "cache_residual_stream", False):
+                        _, hidden_states = run_forward_return_hidden_states_vlm(model, inputs)
+
+                    output_ids = model.generate(
+                        **inputs,
+                        max_new_tokens=args.max_new_tokens,
+                        do_sample=args.temperature > 1e-5,
+                        temperature=args.temperature if args.temperature > 1e-5 else None,
+                        pad_token_id=getattr(processor, "pad_token_id", None) or processor.tokenizer.eos_token_id,
+                    )
+                    if output_ids.dim() == 2:
+                        generated_ids = output_ids[0][input_length:]
+                    else:
+                        generated_ids = output_ids[:, input_length:][0]
+                    answer_text = processor.decode(generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=True).strip()
+
+                    if getattr(args, "cache_residual_stream", False):
+                        cache_root = getattr(args, "cache_dir", None) or str(Path(args.output_folder) / "residual_stream")
+                        task_from_id = id.split(".")[0]
+                        base = cache_dir_for_model_mode_task(
+                            cache_root, args.model_path, args.mode, task_from_id,
+                            args.dataset_id,
+                        )
+                        cache_path = base / f"{example_key(id, index)}.pt"
+                        save_activations_for_modeling(
+                            cache_path,
+                            question=item["text"],
+                            oracle_answer=item["oracle_answer"],
+                            model_prediction=answer_text,
+                            hidden_states=hidden_states,
+                            example_id=id,
+                            index=index,
+                            task=task_from_id,
+                            mode=args.mode,
+                        )
+                        del hidden_states
+                        if torch.cuda.is_available() and index % 10 == 0:
+                            torch.cuda.empty_cache()
+
+                elif "bunny" in args.model_path.lower() and "merged" not in args.model_path.lower():
                     if image is not None:
                         text_chunks = [processor(chunk).input_ids for chunk in prompt.split('<image>')]
                         input_ids = torch.tensor(text_chunks[0] + [-200] + text_chunks[1], dtype=torch.long).unsqueeze(0)
@@ -187,7 +314,7 @@ def main(args, model, processor, dataset, output_file_path):
                         task_from_id = id.split(".")[0]
                         base = cache_dir_for_model_mode_task(
                             cache_root, args.model_path, args.mode, task_from_id,
-                            getattr(args, "dataset_id", "MilaWang/SpatialEval"),
+                            args.dataset_id,
                         )
                         cache_path = base / f"{example_key(id, index)}.pt"
                         save_activations_for_modeling(
@@ -201,8 +328,12 @@ def main(args, model, processor, dataset, output_file_path):
                             task=task_from_id,
                             mode=args.mode,
                         )
+                        del hidden_states
+                        if torch.cuda.is_available() and index % 10 == 0:
+                            torch.cuda.empty_cache()
 
-                elif "qwen" in args.model_path.lower():
+                elif "qwen" in args.model_path.lower() and not _is_qwen25_vl(args.model_path):
+                    # Legacy Qwen-VL-Chat API (no activation cache)
                     if args.mode == "tqa":
                         query = processor.from_list_format([{'text': prompt}])
                     else:
@@ -321,6 +452,18 @@ if __name__ == "__main__":
         model = Bunny(args.model_path, args.model_base, model_type)
         processor = None
         
+    elif _is_llama32_vision(args.model_path):
+        transformers.logging.set_verbosity_error()
+        transformers.logging.disable_progress_bar()
+        warnings.filterwarnings("ignore")
+        model, processor = load_llama32_vision_model_processor(args)
+
+    elif _is_qwen25_vl(args.model_path):
+        transformers.logging.set_verbosity_error()
+        transformers.logging.disable_progress_bar()
+        warnings.filterwarnings("ignore")
+        model, processor = load_qwen25_vl_model_processor(args)
+
     elif "bunny" in args.model_path.lower() and "merged" not in args.model_path.lower():
         # generally support bunny models from huggingface
         transformers.logging.set_verbosity_error()

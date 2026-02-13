@@ -68,4 +68,8 @@ hidden_last = data["hidden_states_last"]
 ## Supported when caching
 
 - **LM (text-only)**: Llama, Qwen, etc. — all paths that use `inference_lm.py`.
-- **VLM**: Bunny HF path only (`inference_vlm.py`). LLaVA and Qwen-VL use chat/generate APIs; cache not implemented there.
+- **VLM**:
+  - **Bunny** (HF path): `inference_vlm.py` — forward with `output_hidden_states=True`, then generate.
+  - **Llama 3.2 Vision** (HuggingFace native): `meta-llama/Llama-3.2-11B-Vision-Instruct` — same pattern; activations saved as last-layer last-token only; `del hidden_states` and periodic `torch.cuda.empty_cache()` to avoid memory buildup.
+  - **Qwen2.5-VL** (HuggingFace native): `Qwen/Qwen2.5-VL-7B-Instruct`, `Qwen/Qwen2.5-VL-3B-Instruct` — same pattern and memory handling.
+  - LLaVA and legacy Qwen-VL (chat API) do not support activation caching.

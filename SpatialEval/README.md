@@ -138,7 +138,7 @@ python run_all_tasks.py --cache_residual_stream [--cache_dir DIR]
 
 **What to do next:** Run without `--dry_run`. Use `--first_k 10` (or similar) for a fast smoke test, then drop it for a full run. Activations are written under `<output_folder>/residual_stream` (or `--cache_dir`). See [ACTIVATIONS.md](ACTIVATIONS.md) for cache layout, `.pt` format, and how to load them for modeling.
 
-Defaults: LM = `meta-llama/Meta-Llama-3-8B-Instruct`, `Qwen/Qwen2-7B-Instruct`; VLM = `liuhaotian/llava-v1.5-7b`, `Qwen/Qwen2-VL-7B-Instruct`. Caching: LMs supported; VLMs only Bunny-HF (LLaVA/Qwen-VL use chat/generate APIs).
+Defaults: LM = `meta-llama/Meta-Llama-3-8B-Instruct`, `Qwen/Qwen2-7B-Instruct`; VLM = `meta-llama/Llama-3.2-11B-Vision-Instruct`, `Qwen/Qwen2.5-VL-7B-Instruct`, `Qwen/Qwen2.5-VL-3B-Instruct` (all support activation caching).
 
 #### 📊 Evaluation
 

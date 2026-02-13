@@ -3,11 +3,10 @@
 Run SpatialEval on all tasks with Llama + Qwen (text-only and multimodal), optionally cache residual stream.
 
 - LM (text-only): Llama, Qwen. Modes: tqa only. Tasks: all (spatialmap, mazenav, spatialgrid, spatialreal).
-- VLM (multimodal): Llama-based (LLaVA), Qwen-VL. Modes: tqa, vqa, vtqa. Tasks: all.
+- VLM (multimodal): Llama 3.2 Vision, Qwen2.5-VL (7B, 3B). Modes: tqa, vqa, vtqa. Tasks: all.
 
-Residual-stream cache: use --cache_residual_stream. Saves layer-wise hidden states to --cache_dir
-(default <output_folder>/residual_stream) for further modeling. LM: supported. VLM: Bunny-HF path only;
-LLaVA and Qwen-VL use chat/generate APIs — cache not implemented for those.
+Residual-stream cache: use --cache_residual_stream. Saves last-layer last-token activations to --cache_dir
+(default <output_folder>/residual_stream). LM and the three VLMs above all support caching.
 
 Usage:
   cd SpatialEval
@@ -27,8 +26,9 @@ MODELS_LM = [
     "Qwen/Qwen2-7B-Instruct",
 ]
 MODELS_VLM = [
-    "liuhaotian/llava-v1.5-7b",       # Llama-based VLM
-    "Qwen/Qwen2-VL-7B-Instruct",      # Qwen-VL
+    "meta-llama/Llama-3.2-11B-Vision-Instruct",
+    "Qwen/Qwen2.5-VL-7B-Instruct",
+    "Qwen/Qwen2.5-VL-3B-Instruct",
 ]
 
 
